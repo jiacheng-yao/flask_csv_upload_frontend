@@ -1,0 +1,1 @@
+A microservice for uploading .csv format bidding updates, expected to be used along with /mathemads/bidunicorn.

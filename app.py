@@ -1,0 +1,134 @@
+from flask import Flask, render_template, json, request,redirect,session,jsonify
+from flask.ext import excel
+
+import pandas as pd
+
+from werkzeug import generate_password_hash, check_password_hash
+
+from sqlalchemy_declarative import CSVUpload_User, Base
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+import json
+import requests
+
+from IPython.display import HTML
+
+app = Flask(__name__)
+app.secret_key = 'zcxvnasdlfjlwer123iudsovjcxovopiopo09'
+
+@app.route('/')
+def main():
+    if session.get('user'):
+        return render_template('uploadCSV.html')
+    else:
+        return render_template('signin.html')
+
+@app.route('/showSignin')
+def showSignin():
+    if session.get('user'):
+        return render_template('uploadCSV.html')
+    else:
+        return render_template('signin.html')
+
+@app.route('/uploadCSV')
+def showUploadCSV():
+    if session.get('user'):
+        return render_template('uploadCSV.html')
+    else:
+        return render_template('error.html', error='Unauthorized Access')
+
+
+@app.route('/logout')
+def logout():
+    session.pop('user',None)
+    return redirect('/')
+
+@app.route('/reports')
+def showReports():
+    try:
+        if session.get('user'):
+            result = requests.get('http://localhost:60000/bidmod/report_list/{}'.format(session['user']))
+
+            result_json = result.json()
+
+            result_df = pd.DataFrame(result_json['data'])
+
+            result_df.drop(['task_id', 'username', 'filename'], axis=1, inplace=True)
+
+            result_df['started_at'] = [str(tmp).split('.')[0] for tmp in pd.to_datetime(result_df['started_at'])]
+            result_df['created_at'] = [str(tmp).split('.')[0] for tmp in pd.to_datetime(result_df['created_at'])]
+            result_df['finished_at'] = [str(tmp).split('.')[0] for tmp in pd.to_datetime(result_df['finished_at'])]
+
+            result_df['download_link'] = result_df['id'].apply(lambda x: '<a href="http://localhost:60000/bidmod/{0}/download">Download</a>'.format(x))
+
+            result_df.set_index(['id'], inplace=True)
+            result_df.index.name = 'Task'
+
+            result_df = result_df[['venture', 'status', 'validate_only',
+                                   'comment', 'error_message', 'created_at',
+                                   'started_at', 'finished_at', 'download_link']]
+
+            pd.set_option('display.max_colwidth', 1000)
+
+            return render_template('reports.html',
+                                   df=HTML(result_df.to_html(escape=False)))
+
+    except Exception as e:
+        return render_template('error.html', error = str(e))
+
+
+@app.route('/do_uploadCSV',methods=['POST'])
+def UploadCSV():
+    try:
+        if session.get('user'):
+
+            username = session['user']
+            filename = request.form['filename']
+            venture = request.form['venture']
+            csv_data = request.get_array(field_name='file')
+            validate_only = 'validate_only' in request.form
+            comment = request.form['comment']
+
+            result = requests.post('http://localhost:60000/bidmod/upload',
+                                   data={"username": username,
+                                         "filename": filename,
+                                         "venture": venture,
+                                         "csv_data": json.dumps(csv_data),
+                                         "validate_only": validate_only,
+                                         "comment": comment})
+
+            return render_template('uploadCSV.html')
+        else:
+            return render_template('error.html',error = 'Unauthorized Access')
+    except Exception as e:
+        return render_template('error.html',error = str(e))
+
+
+@app.route('/validateLogin',methods=['POST'])
+def validateLogin():
+    try:
+        _username = request.form['inputUsername']
+        _password = request.form['inputPassword']
+
+        engine = create_engine('sqlite:///csvupload_user.db')
+        Base.metadata.bind = engine
+
+        DBSession = sessionmaker()
+        DBSession.bind = engine
+        db_session = DBSession()
+
+        user = db_session.query(CSVUpload_User).filter(CSVUpload_User.username == _username).one()
+
+        if check_password_hash(user.password,_password):
+            session['user'] = user.id
+            return redirect('/uploadCSV')
+        else:
+            return render_template('error.html',error = 'Wrong Password.')
+
+    except Exception as e:
+        return render_template('error.html',error = str(e))
+
+
+if __name__ == "__main__":
+    app.run(port=5002, debug=True)

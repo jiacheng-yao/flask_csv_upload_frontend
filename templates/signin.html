@@ -1,0 +1,50 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Bid Modifier - Sign In</title>
+
+   
+    <link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="http://getbootstrap.com/examples/jumbotron-narrow/jumbotron-narrow.css" rel="stylesheet">
+    <script src="../static/js/jquery-1.11.2.js"></script>
+    <script src="../static/js/signIn.js"></script>
+   
+  </head>
+
+  <body>
+
+    <div class="container">
+      <div class="header">
+        <nav>
+          <ul class="nav nav-pills pull-right">
+            <li role="presentation" ><a href="/">Home</a></li>
+            <li role="presentation" class="active"><a href="#">Sign In</a></li>
+          </ul>
+        </nav>
+        <h3 class="text-muted">Microservice: BID Modifier</h3>
+      </div>
+
+      <div class="jumbotron">
+        <h1>CSV Upload Port</h1>
+        <form class="form-signin" action="/validateLogin" method="post">
+        <label for="inputUsername" class="sr-only">User name</label>
+        <input type="username" name="inputUsername" id="inputUsername" class="form-control" placeholder="Username" required autofocus>
+        <label for="inputPassword" class="sr-only">Password</label>
+        <input type="password" name="inputPassword" id="inputPassword" class="form-control" placeholder="Password" required>
+        
+        <button id="btnSignIn" class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+      </form>
+      </div>
+
+      
+
+      <footer class="footer">
+        <p>&copy; Mathemads 2016</p>
+      </footer>
+
+    </div>
+  </body>
+</html>
+
