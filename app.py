@@ -12,10 +12,10 @@ from sqlalchemy.orm import sessionmaker
 import json
 import requests
 
-from IPython.display import HTML
+import settings
 
 app = Flask(__name__)
-app.secret_key = 'zcxvnasdlfjlwer123iudsovjcxovopiopo09'
+app.secret_key = settings.CSVUPLOAD_APP_SECRET_KEY
 
 @app.route('/')
 def main():
@@ -48,7 +48,9 @@ def logout():
 def showReports():
     try:
         if session.get('user'):
-            result = requests.get('http://localhost:60000/bidmod/report_list/{}'.format(session['user']))
+            result = requests.get('http://{}:{}/bidmod/report_list/{}'.format(settings.BIDMOD_SERVER_HOST,
+                                                                              settings.BIDMOD_SERVER_PORT,
+                                                                              session['user']))
 
             result_json = result.json()
 
@@ -60,7 +62,11 @@ def showReports():
             result_df['created_at'] = [str(tmp).split('.')[0] for tmp in pd.to_datetime(result_df['created_at'])]
             result_df['finished_at'] = [str(tmp).split('.')[0] for tmp in pd.to_datetime(result_df['finished_at'])]
 
-            result_df['download_link'] = result_df['id'].apply(lambda x: '<a href="http://localhost:60000/bidmod/{0}/download">Download</a>'.format(x))
+            result_df['download_link'] = result_df['id'].apply(lambda x:
+                                                               '<a href="http://{}:{}/bidmod/{}/download">Download</a>'.
+                                                               format(settings.BIDMOD_SERVER_HOST,
+                                                                      settings.BIDMOD_SERVER_PORT,
+                                                                      x))
 
             result_df.set_index(['id'], inplace=True)
             result_df.index.name = 'Task'
@@ -72,7 +78,7 @@ def showReports():
             pd.set_option('display.max_colwidth', 1000)
 
             return render_template('reports.html',
-                                   df=HTML(result_df.to_html(escape=False)))
+                                   df=result_df.to_html(escape=False))
 
     except Exception as e:
         return render_template('error.html', error = str(e))
@@ -90,7 +96,8 @@ def UploadCSV():
             validate_only = 'validate_only' in request.form
             comment = request.form['comment']
 
-            result = requests.post('http://localhost:60000/bidmod/upload',
+            result = requests.post('http://{}:{}/bidmod/upload'.format(settings.BIDMOD_SERVER_HOST,
+                                                                      settings.BIDMOD_SERVER_PORT),
                                    data={"username": username,
                                          "filename": filename,
                                          "venture": venture,
