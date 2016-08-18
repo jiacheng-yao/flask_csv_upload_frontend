@@ -56,7 +56,9 @@ def showReports():
 
             result_df = pd.DataFrame(result_json['data'])
 
-            result_df.drop(['task_id', 'username', 'filename'], axis=1, inplace=True)
+            result_df.drop(['task_id', 'username', 'comment'], axis=1, inplace=True)
+
+            result_df = result_df.rename(columns={'filename': 'title'})
 
             result_df['started_at'] = [str(tmp).split('.')[0] for tmp in pd.to_datetime(result_df['started_at'])]
             result_df['created_at'] = [str(tmp).split('.')[0] for tmp in pd.to_datetime(result_df['created_at'])]
