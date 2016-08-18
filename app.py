@@ -74,7 +74,7 @@ def showReports():
             result_df.index.name = 'Task'
 
             result_df = result_df[['venture', 'status', 'validate_only',
-                                   'comment', 'error_message', 'created_at',
+                                   'title', 'error_message', 'created_at',
                                    'started_at', 'finished_at', 'download_link']]
 
             pd.set_option('display.max_colwidth', 1000)
