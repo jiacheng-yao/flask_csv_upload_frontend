@@ -56,31 +56,34 @@ def showReports():
 
             result_df = pd.DataFrame(result_json['data'])
 
-            result_df.drop(['task_id', 'username', 'comment'], axis=1, inplace=True)
+            if not result_df.empty:
+                result_df.drop(['task_id', 'username', 'comment'], axis=1, inplace=True)
 
-            result_df = result_df.rename(columns={'filename': 'title'})
+                result_df = result_df.rename(columns={'filename': 'title'})
 
-            result_df['started_at'] = [str(tmp).split('.')[0] for tmp in pd.to_datetime(result_df['started_at'])]
-            result_df['created_at'] = [str(tmp).split('.')[0] for tmp in pd.to_datetime(result_df['created_at'])]
-            result_df['finished_at'] = [str(tmp).split('.')[0] for tmp in pd.to_datetime(result_df['finished_at'])]
+                result_df['started_at'] = [str(tmp).split('.')[0] for tmp in pd.to_datetime(result_df['started_at'])]
+                result_df['created_at'] = [str(tmp).split('.')[0] for tmp in pd.to_datetime(result_df['created_at'])]
+                result_df['finished_at'] = [str(tmp).split('.')[0] for tmp in pd.to_datetime(result_df['finished_at'])]
 
-            result_df['download_link'] = result_df['id'].apply(lambda x:
-                                                               '<a href="http://{}:{}/bidmod/{}/download">Download</a>'.
-                                                               format(settings.BIDMOD_SERVER_HOST,
-                                                                      settings.BIDMOD_SERVER_PORT,
-                                                                      x))
+                result_df['download_link'] = result_df['id'].apply(lambda x:
+                                                                   '<a href="http://{}:{}/bidmod/{}/download">Download</a>'.
+                                                                   format(settings.BIDMOD_SERVER_HOST,
+                                                                          settings.BIDMOD_SERVER_PORT,
+                                                                          x))
 
-            result_df.set_index(['id'], inplace=True)
-            result_df.index.name = 'Task'
+                result_df.set_index(['id'], inplace=True)
+                result_df.index.name = 'Task'
 
-            result_df = result_df[['venture', 'status', 'validate_only',
-                                   'title', 'error_message', 'created_at',
-                                   'started_at', 'finished_at', 'download_link']]
+                result_df = result_df[['venture', 'status', 'validate_only',
+                                       'title', 'error_message', 'created_at',
+                                       'started_at', 'finished_at', 'download_link']]
 
-            pd.set_option('display.max_colwidth', 1000)
+                pd.set_option('display.max_colwidth', 1000)
 
-            return render_template('reports.html',
-                                   df=result_df.to_html(escape=False))
+                return render_template('reports.html',
+                                       df=result_df.to_html(escape=False))
+            else:
+                return render_template('reports_empty.html')
 
     except Exception as e:
         return render_template('error.html', error = str(e))
