@@ -97,7 +97,13 @@ def UploadCSV():
             username = session['user']
             filename = request.form['filename']
             venture = request.form['venture']
-            csv_data = request.get_array(field_name='file')
+
+            f = request.files['file']
+            csv_data = f.stream.read()
+
+            if isinstance(csv_data, str):
+                csv_data = csv_data.decode('ISO-8859-1')
+
             validate_only = 'validate_only' in request.form
             comment = request.form['comment']
 
