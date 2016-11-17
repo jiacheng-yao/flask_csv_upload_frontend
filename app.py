@@ -67,8 +67,8 @@ def showReports():
 
                 result_df['download_link'] = result_df['id'].apply(lambda x:
                                                                    '<a href="http://{}:{}/bidmod/{}/download">Download</a>'.
-                                                                   format(settings.BIDMOD_SERVER_HOST,
-                                                                          settings.BIDMOD_SERVER_PORT,
+                                                                   format(settings.BIDMOD_DOWNLOAD_HOST,
+                                                                          settings.BIDMOD_DOWNLOAD_PORT,
                                                                           x))
 
                 result_df.set_index(['id'], inplace=True)
